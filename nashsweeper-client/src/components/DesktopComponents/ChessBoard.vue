@@ -442,14 +442,34 @@ export default {
             false, false, false, false, false, false, false, false,
             false, false, false, false, false, false, false, false,
             false, false, false, false, false, false, false, false,
-            false, false, false, false, false, false, false, false]
+            false, false, false, false, false, false, false, false];
+        const UserData = {
+            // "index": { "value": "9" },
+            "playerid": { "value": "Null" },
+            "totoalstrategies": { "value": 0 },
+            "time": { "value": "Null" },
+            "brfind": { "value": "0/Null" }
+        }
+
         const GameOverState = true
         return {
             cc, cm, NELst, BRP1, BRP2, ccStatus, NEcounter, BRcounter,
-            gameOverStr, GameOverState, time, NEset, BRset, Userset
+            gameOverStr, GameOverState, time, NEset, BRset, Userset,
+            UserData
         }
     },
     methods: {
+        getPlayerID: function () {
+            const playerID = prompt('Please enter your Player ID:');
+            if (playerID) {
+                // 如果用户输入了值，则处理这个值
+                console.log('Player ID entered:', playerID);
+                this.UserData.playerid.value = playerID;
+            } else {
+                // 如果用户没有输入值，则可能点击了取消
+                console.log('No Player ID entered');
+            }
+        },
         getGameData: function () {
             var that = this;
             axios({
@@ -463,6 +483,22 @@ export default {
                     that.NELst = response.data.NE;
                     that.BRP1 = response.data.BRP1;
                     that.BRP2 = response.data.BRP1;
+                })
+                .catch(function (error) {
+                    // console.log(error);
+                    console.log(error.message);
+                })
+        },
+        postGameResult: function () {
+            var that = this;
+            axios({
+                method: 'post',
+                // url: '/GetGameData'
+                url: '/nodebridge/add-record',
+                data: that.UserData
+            })
+                .then(function (response) {
+                    console.log(response.data);
                 })
                 .catch(function (error) {
                     // console.log(error);
@@ -539,13 +575,20 @@ export default {
                 this.cc[index] = [true, false, false]
             }
             this.Userset.push(index);
+            this.UserData.totoalstrategies.value += 1;
         },
+        // 
+        // 
         GameOver: function () {
             // const GameOverState = true;
             if (this.NEcounter == this.NELst.length && this.GameOverState) {
-                this.gameOverStr = "Game Over, you have found all the Nash Equilibrium and " + this.BRcounter + " Best Response, " + "You spent a total of " + +this.time.hour + ":" + this.time.minute + ":" + this.time.second;
+                this.gameOverStr = "Game Over, you have found all the Nash Equilibrium and " + this.BRcounter + " Best Response, " + "You spent a total of " + this.time.hour + ":" + this.time.minute + ":" + this.time.second;
+                this.UserData.time.value = this.time.minute + ":" + this.time.second;
+                const BRLst = this.BRP1.length + this.BRP2.length;
+                this.UserData.brfind.value = this.BRcounter + "/" + BRLst;
                 alert(this.gameOverStr);
                 this.GameOverState = false;
+                this.postGameResult();
                 // setInterval(() => {
                 //     this.$router.push({ name: 'Home' });
                 // }, 2000)
@@ -826,6 +869,7 @@ export default {
     },
     mounted() {
         this.getGameData();
+        this.getPlayerID()
         // execute every 1 s
         this.timer = setInterval(() => {
             this.BRcalc();
