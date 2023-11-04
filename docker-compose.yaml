@@ -1,0 +1,33 @@
+version: '3'
+
+services:
+
+  client:
+    container_name: nashsweeper-frontend
+    build: ./nashsweeper-client
+    restart: always
+    ports: 
+      - "8080:4173"
+    networks:
+      - nashsweeper_net
+      
+  server:
+    container_name: nashsweeper-backend
+    build: ./nashsweeper-server
+    restart: always
+    ports: 
+      - "5000:5000"
+    networks:
+      - nashsweeper_net
+
+    transbridge:
+      container_name: nashsweeper-kintone
+      build: ./kintone-bridge
+      restart: always
+      ports: 
+        - "3000:3000"
+      networks:
+        - nashsweeper_net
+
+networks:
+  nashsweeper_net:
