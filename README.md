@@ -1,1 +1,1 @@
-# Nashsweeper-with-kintone
+# Nashsweeper-with-Kintone
